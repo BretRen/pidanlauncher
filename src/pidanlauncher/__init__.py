@@ -1,3 +1,5 @@
+import threading
+
 import flet as ft
 from pidanlauncher.launcher import MinecraftLauncher
 
@@ -22,17 +24,42 @@ async def main(page: ft.Page):
     page.title = "Pidan Launcher"
     page.window.width = 700
     page.window.height = 500
+    page.window.min_width = 700
+    page.window.min_height = 500
+    page.window.max_width = 700
+    page.window.max_height = 500
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    page.window.resizable = False
+    page.window.maximizable = False
 
     prefs = ft.SharedPreferences()
     has_accepted_terms = await prefs.get("has_accepted_terms") or False
 
     def show_main():
+        def on_click_launcher(e: ft.Event[ft.Button]):
+            launcher_button.disabled = True
+            launcher_button.content = "Starting..."
+            page.update()
+
+            def run_and_update():
+                try:
+                    launcher.run()
+                    launcher_button.content = "Launcher Minecraft"
+                    launcher_button.disabled = False
+                except Exception as e:
+                    launcher_button.content = f"Launcher Failed: {e}"
+                    launcher_button.disabled = False
+                page.update()
+            
+            threading.Thread(target=run_and_update, daemon=True).start()
+
+        launcher_button = ft.Button("Launch Minecraft", on_click=on_click_launcher)
+
         page.clean()
         page.add(
             ft.Text("Welcome to Pidan Launcher", size=24),
-            ft.Button("Launch Minecraft", on_click=lambda e: launcher.run()),
+            launcher_button,
         )
 
     async def disagree(e: ft.Event[ft.Button]):
@@ -72,7 +99,7 @@ async def main(page: ft.Page):
                     )
                 ],
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                spacing=20.
+                spacing=20,
             )
         )
 
