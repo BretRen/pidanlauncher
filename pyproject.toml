@@ -1,19 +1,20 @@
 [project]
-name = "pidanlauncher"
-version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
 authors = [
-    { name = "BretRen", email = "bretren2013@gmail.com" }
+  {name = "BretRen", email = "bretren2013@gmail.com"},
 ]
-requires-python = ">=3.11"
 dependencies = [
-    "flet[all]>=1.0.4",
+  "flet[all]>=1.0.4",
+  "minecraft-launcher-lib>=8.0",
 ]
+description = "A simple Minecraft Laucher"
+name = "pidanlauncher"
+readme = "README.md"
+requires-python = ">=3.11"
+version = "0.1.0"
 
 [project.scripts]
 pidanlauncher = "pidanlauncher:main"
 
 [build-system]
-requires = ["uv_build>=0.12.5,<0.13.0"]
 build-backend = "uv_build"
+requires = ["uv_build>=0.12.5,<0.13.0"]

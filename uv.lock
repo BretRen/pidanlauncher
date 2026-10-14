@@ -671,6 +671,18 @@ wheels = [
 ]
 
 [[package]]
+name = "minecraft-launcher-lib"
+version = "8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1e/68/fdd869aea9f04fe1dc7f243df084a7e30843bed5776890f29ac0b85f213b/minecraft_launcher_lib-8.0.tar.gz", hash = "sha256:4ce173f2e1885c0d5bdf5ecebaa2f1ffc63140663c77699696689f3807b6bdb0", size = 43132, upload-time = "2025-10-30T18:22:39.117Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/4d/ff/ac903044f43558af87999dda35e7a3c31d278f766e83e484b24d572fdffe/minecraft_launcher_lib-8.0-py3-none-any.whl", hash = "sha256:ff17960c62e21ca7e21329303ae56bdefc0246de3bc9a5e1578dfa8df6604746", size = 61631, upload-time = "2025-10-30T18:22:37.875Z" },
+]
+
+[[package]]
 name = "msgpack"
 version = "1.2.3"
 source = { registry = "https://pypi.org/simple" }
@@ -794,10 +806,14 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "flet", extra = ["all"] },
+    { name = "minecraft-launcher-lib" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "flet", extras = ["all"], specifier = ">=1.0.4" }]
+requires-dist = [
+    { name = "flet", extras = ["all"], specifier = ">=1.0.4" },
+    { name = "minecraft-launcher-lib", specifier = ">=8.0" },
+]
 
 [[package]]
 name = "pillow"
