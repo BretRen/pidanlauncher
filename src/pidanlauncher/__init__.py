@@ -1,6 +1,7 @@
 import threading
 
 import flet as ft
+from minecraft_launcher_lib.types import MinecraftVersionInfo
 from pidanlauncher.launcher import MinecraftLauncher
 
 TERMS_TEXT = """
@@ -31,6 +32,7 @@ class PidanLauncherApp:
         self.prefs: ft.SharedPreferences | None = None
         self.launcher_button: ft.Button | None = None
         self.account_button: ft.Button | None = None
+        self.version: str | None = None
 
     async def setup_window(self) -> None:
         """Configure initial window properties and display settings."""
@@ -125,6 +127,26 @@ class PidanLauncherApp:
 
     # --- Main View ---
 
+    def build_version_dropdown(self) -> ft.Dropdown:
+        versions: list[MinecraftVersionInfo] = launcher.get_avilable_versions()
+        options_list = [
+            ft.DropdownOption(
+                key=v["id"],
+                text=v["id"],
+                data=v
+            )
+            for v in versions
+            if v["type"] == "release"
+        ]
+
+        def on_version_select(e: ft.Event[ft.Dropdown]):
+            self.version = dropdown.value
+        
+        dropdown = ft.Dropdown(options=options_list, on_select=on_version_select, value=launcher.get_latest_version()["release"])
+        
+        return dropdown
+
+
     def show_main(self) -> None:
         """Render the main launcher view."""
         if self.page is None:
@@ -138,6 +160,7 @@ class PidanLauncherApp:
             ft.Text("Welcome to Pidan Launcher", size=24),
             self.launcher_button,
             self.build_account_manage_view(),
+            self.build_version_dropdown(),
         )
 
     # --- Launcher Control ---
@@ -165,7 +188,7 @@ class PidanLauncherApp:
 
         def run_and_update():
             try:
-                self.launcher.run()
+                self.launcher.run(version=self.version)
                 if self.launcher_button:
                     self.launcher_button.content = "Launcher Minecraft"
                     self.launcher_button.disabled = False

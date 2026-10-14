@@ -4,7 +4,11 @@ import subprocess
 import webbrowser
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
-from minecraft_launcher_lib.types import MinecraftOptions
+from minecraft_launcher_lib.types import (
+    MinecraftOptions,
+    MinecraftVersionInfo,
+    LatestMinecraftVersions
+)
 from minecraft_launcher_lib.microsoft_types import CompleteLoginResponse
 
 class CallbackHandler(BaseHTTPRequestHandler):
@@ -49,6 +53,22 @@ class MinecraftLauncher:
             version, self.minecraft_directory
         )
         return version
+
+    def get_installed_versions(
+        self, minecraft_directory: str | None = None
+    ) -> list[MinecraftVersionInfo]:
+        target_dir = minecraft_directory or self.minecraft_directory
+        return minecraft_launcher_lib.utils.get_installed_versions(target_dir) # type: ignore
+
+    def get_avilable_versions(
+        self, minecraft_directory: str | None = None
+    ) -> list[MinecraftVersionInfo]:
+        target_dir = minecraft_directory or self.minecraft_directory
+        return minecraft_launcher_lib.utils.get_available_versions(target_dir) # type: ignore
+
+    def get_latest_version(self) -> LatestMinecraftVersions:
+        return minecraft_launcher_lib.utils.get_latest_version()
+    
 
     def _get_auth_code(self, login_url: str) -> str:
         port = int(self.redirect_url.split(":")[-1])
