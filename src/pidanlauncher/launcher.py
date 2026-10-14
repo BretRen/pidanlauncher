@@ -94,6 +94,28 @@ class MinecraftLauncher:
         )
         subprocess.run(command, cwd=self.minecraft_directory)
 
+    @property
+    def is_logged_in(self) -> bool:
+        return self.login_data is not None and "access_token" in self.login_data
+
+    def ensure_login(self) -> None | minecraft_launcher_lib.exceptions.InvalidRefreshToken:
+        if not self.login_data:
+            self.login()
+            return
+
+        if "refresh_token" in self.login_data:
+            try:
+                self.login_data = minecraft_launcher_lib.microsoft_account.complete_refresh(
+                    self.client_id,
+                    None,
+                    self.redirect_url,
+                    self.login_data["refresh_token"]
+                )
+            except minecraft_launcher_lib.exceptions.InvalidRefreshToken as e:
+                return e
+        else:
+            self.login()
+
     def run(self, version: str | None = None) -> None:
         self.install(version)
         self.login()

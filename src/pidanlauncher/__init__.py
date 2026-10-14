@@ -37,6 +37,43 @@ async def main(page: ft.Page):
     has_accepted_terms = await prefs.get("has_accepted_terms") or False
 
     def show_main():
+        def build_account_manage_view():
+            initial_text = "Signout" if launcher.is_logged_in else "Login"
+            button = ft.Button(content=initial_text)
+
+            def update_button_state():
+                if not launcher.is_logged_in:
+                    button.content = "Login"
+                    button.disabled = False
+                    button.on_click = handle_login
+                else:
+                    button.content = "Signout"
+                    button.disabled = False
+                    button.on_click = handle_signout
+
+            def handle_login(e: ft.Event[ft.Button]):
+                button.disabled = True
+                button.content = ft.ProgressRing(width=16, height=16, stroke_width=2)
+                button.update()
+
+                def do_login_thread():
+                    try:
+                        launcher.login()
+                    except Exception as e:
+                        print(f"Faile to login: {e}")
+                    finally:
+                        update_button_state()
+                        page.update()
+                        
+                threading.Thread(target=do_login_thread, daemon=True).start()
+
+            def handle_signout(e: ft.Event[ft.Button]):
+                launcher.login_data = None
+                update_button_state()
+
+            update_button_state()
+            return button
+
         def on_click_launcher(e: ft.Event[ft.Button]):
             launcher_button.disabled = True
             launcher_button.content = "Starting..."
@@ -60,6 +97,7 @@ async def main(page: ft.Page):
         page.add(
             ft.Text("Welcome to Pidan Launcher", size=24),
             launcher_button,
+            build_account_manage_view(),
         )
 
     async def disagree(e: ft.Event[ft.Button]):
