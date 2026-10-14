@@ -21,6 +21,10 @@ launcher = MinecraftLauncher(
 )
 
 async def main(page: ft.Page):
+    # Windows Settings
+    ## Because otherwise, the window cannot be displayed at its normal size.
+    page.window.visible = False
+
     page.title = "Pidan Launcher"
     page.window.width = 700
     page.window.height = 500
@@ -32,6 +36,14 @@ async def main(page: ft.Page):
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
     page.window.resizable = False
     page.window.maximizable = False
+
+    page.update()
+    await page.window.center()
+    
+    page.window.visible = True
+    page.update()
+
+    # Others
 
     prefs = ft.SharedPreferences()
     has_accepted_terms = await prefs.get("has_accepted_terms") or False
