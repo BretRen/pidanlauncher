@@ -62,14 +62,18 @@ async def main(page: ft.Page):
                     except Exception as e:
                         print(f"Faile to login: {e}")
                     finally:
-                        update_button_state()
-                        page.update()
+                        async def update_ui():
+                            update_button_state()
+                            update_launch_button()
+                            page.update()
+                        page.run_task(update_ui)
                         
                 threading.Thread(target=do_login_thread, daemon=True).start()
 
             def handle_signout(e: ft.Event[ft.Button]):
                 launcher.login_data = None
                 update_button_state()
+                update_launch_button()
 
             update_button_state()
             return button
@@ -91,7 +95,17 @@ async def main(page: ft.Page):
             
             threading.Thread(target=run_and_update, daemon=True).start()
 
-        launcher_button = ft.Button("Launch Minecraft", on_click=on_click_launcher)
+
+        def update_launch_button():
+            if launcher.is_logged_in:
+                launcher_button.disabled = False
+                launcher_button.content = "Launch Minecraft"
+            else:
+                launcher_button.disabled = True
+                launcher_button.content = "You must login"
+
+        launcher_button = ft.Button(on_click=on_click_launcher)
+        update_launch_button()
 
         page.clean()
         page.add(
