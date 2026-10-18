@@ -9,8 +9,9 @@ DO NOT USE IT! Unless your Terra Reviewer. This project suck; I just want to try
 ## How to use it?
 Great Question! It's just a launcher; I support all versions (release / vallina) in Minecraft. Just try it!
 
-Go to the GitHub Release, download your system version (Windows, macOS (unstable), Linux (unstable)).
+Go to GitHub Actions, click on the latest run, locate the "Artifacts" section, and download the version appropriate for your system (Windows, macOS (unstable), or Linux (unstable)).
 
+**You must log in to GitHub!**
 ## Note for Terra Reviewer
 Hello Reviewer, I do not know who is reviewing my project, but it doesn't matter.
 
