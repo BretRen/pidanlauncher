@@ -11,7 +11,7 @@ Great Question! It's just a launcher; I support all versions (release / vallina)
 
 Go to GitHub Actions, click on the latest run, locate the "Artifacts" section, and download the version appropriate for your system (Windows, macOS (unstable), or Linux (unstable)).
 
-**You must log in to GitHub!**
+**You must log in to GitHub to download it!**
 ## Note for Terra Reviewer
 Hello Reviewer, I do not know who is reviewing my project, but it doesn't matter.
 
