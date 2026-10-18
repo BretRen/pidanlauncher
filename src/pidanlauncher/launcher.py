@@ -112,7 +112,7 @@ class MinecraftLauncher:
         command = minecraft_launcher_lib.command.get_minecraft_command(  # type: ignore
             self.version, self.minecraft_directory, options
         )
-        subprocess.run(command, cwd=self.minecraft_directory)
+        subprocess.Popen(command, cwd=self.minecraft_directory)
 
     @property
     def is_logged_in(self) -> bool:

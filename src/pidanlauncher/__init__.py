@@ -249,17 +249,25 @@ class PidanLauncherApp:
         self.page.update()
 
         def run_and_update():
+            btn_text = "Launch Minecraft"
+
             try:
                 self.launcher.run(version=self.version)
-                if self.launcher_button:
-                    self.launcher_button.content = "Launcher Minecraft"
-                    self.launcher_button.disabled = False
             except Exception as ex:
-                if self.launcher_button:
-                    self.launcher_button.content = f"Launcher Failed: {ex}"
-                    self.launcher_button.disabled = False
+                btn_text = f"Launch Failed: {ex}"
+                print(f"Launch error: {ex}")
+
             if self.page:
                 self.page.update()
+
+            async def update_ui():
+                if self.launcher_button:
+                    self.launcher_button.content = btn_text
+                    self.launcher_button.disabled = False
+                if self.page:
+                    self.page.update()
+            if self.page:
+                self.page.run_task(update_ui)
 
         threading.Thread(target=run_and_update, daemon=True).start()
 
