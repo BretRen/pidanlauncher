@@ -1,0 +1,82 @@
+name: Build Flet All Platforms
+
+on:
+    push:
+        branches: ["main"]
+        tags: ["v*"]
+    pull_request:
+        branches: ["main"]
+    workflow_dispatch:
+
+jobs:
+    build:
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: windows-latest
+                      platform_name: Windows
+                      artifact_path: dist/PidanLauncher.exe
+                    - os: ubuntu-latest
+                      platform_name: Linux
+                      artifact_path: dist/PidanLauncher
+                    - os: macos-latest
+                      platform_name: macOS
+                      artifact_path: dist/PidanLauncher-macOS.zip
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Setup uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  enable-cache: true
+
+            - name: Install Linux System Dependencies
+              if: runner.os == 'Linux'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libgtk-3-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libmpv-dev mpv patchelf
+
+            - name: Install Python dependencies
+              run: |
+                  uv sync --locked
+
+            - name: Package (Windows)
+              if: runner.os == 'Windows'
+              run: |
+                  uv run flet pack src/pidanlauncher/__init__.py `
+                    --name "PidanLauncher" `
+                    --product-name "PidanLauncher" `
+                    --company-name "Pdnode" `
+                    --product-version "0.1.0" `
+                    --copyright "Copyright (C) 2026 by Pidan" `
+                    --yes
+
+            - name: Package (Linux & macOS)
+              if: runner.os != 'Windows'
+              shell: bash
+              run: |
+                  uv run flet pack src/pidanlauncher/__init__.py \
+                    --name "PidanLauncher" \
+                    --product-name "PidanLauncher" \
+                    --product-version "0.1.0" \
+                    --copyright "Copyright (C) 2026 by Pidan" \
+                    --bundle-id "com.pdnode.pidanlauncher" \
+                    --yes
+
+            # macOS 生成的 .app 是目录结构，必须用 ditto 打包成 zip 才能保留权限和可执行属性
+            - name: Zip macOS App Bundle
+              if: runner.os == 'macOS'
+              run: |
+                  ditto -c -k --sequesterRsrc --keepParent dist/PidanLauncher.app dist/PidanLauncher-macOS.zip
+
+            - name: Upload Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: PidanLauncher-${{ matrix.platform_name }}
+                  path: ${{ matrix.artifact_path }}
+                  if-no-files-found: error

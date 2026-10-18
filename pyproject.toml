@@ -24,3 +24,8 @@ company = "Pdnode"
 copyright = "Copyright (C) 2026 by Pidan"
 org = "com.pdnode"
 product = "PidanLauncher"
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.22.3",
+]
