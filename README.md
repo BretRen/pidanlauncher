@@ -58,6 +58,7 @@ Need more future? see [MaterialLauncher](https://github.com/xxdmkbmark/MaterialL
   - [ ] Save account information for next time
   - [ ] Multiple account 
 - [ ] Java Manage
+- [ ] Uninstall
 - [ ] Custom Java Arg
 - [ ] Backup (not in plan)
 - [ ] Manage minecraft folder
