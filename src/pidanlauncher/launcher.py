@@ -138,7 +138,7 @@ class MinecraftLauncher:
 
     def run(self, version: str | None = None) -> None:
         self.install(version)
-        self.login()
+        self.ensure_login()
         self.launch()
 
 if __name__ == "__main__":

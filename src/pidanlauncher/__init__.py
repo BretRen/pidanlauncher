@@ -1,5 +1,5 @@
 import threading
-
+import json
 import flet as ft
 from minecraft_launcher_lib.types import MinecraftVersionInfo
 from pidanlauncher.launcher import MinecraftLauncher
@@ -69,6 +69,35 @@ class PidanLauncherApp:
         self.prefs = ft.SharedPreferences()
         has_accepted_terms = await self.prefs.get("has_accepted_terms") or False
 
+        saved_account_str = await self.prefs.get("saved_account")
+        if isinstance(saved_account_str, str) and self.prefs and self.page:
+            prefs = self.prefs
+            page = self.page
+            try:
+                self.launcher.login_data = json.loads(saved_account_str)
+                def silent_refresh():
+                    err = self.launcher.ensure_login()
+                    if err is not None:
+                        self.launcher.login_data = None
+                        if self.page:
+                            self.page.run_task(prefs.remove, "saved_account")
+
+                    else:
+                        if self.page:
+                            self.page.run_task(prefs.set, "saved_account", json.dumps(self.launcher.login_data))
+
+                    if self.page:
+                        async def refresh_ui():
+                            self.update_account_button_state()
+                            self.update_launch_button()
+                            page.update()
+
+                            
+                        self.page.run_task(refresh_ui)
+                threading.Thread(target=silent_refresh, daemon=True).start()
+            except Exception as e:
+                print(f"Failed to load saved account: {e}")
+                self.launcher.login_data = None
         if has_accepted_terms:
             self.show_main()
         else:
@@ -146,6 +175,13 @@ class PidanLauncherApp:
         
         return dropdown
 
+    def build_account_text(self):
+        text = ft.Text("You are logged in as ")
+        if self.launcher.login_data is not None:
+            text.value += self.launcher.login_data["name"]
+            return text
+        else:
+            return None
 
     def show_main(self) -> None:
         """Render the main launcher view."""
@@ -155,13 +191,21 @@ class PidanLauncherApp:
         self.launcher_button = ft.Button(on_click=self.handle_launch)
         self.update_launch_button()
 
+        account_text = self.build_account_text()
+
+
         self.page.clean()
+        self.page.add(ft.Text("Welcome to Pidan Launcher", size=24))
+        if account_text is not None:
+            self.page.add(account_text)
         self.page.add(
-            ft.Text("Welcome to Pidan Launcher", size=24),
             self.launcher_button,
             self.build_account_manage_view(),
             self.build_version_dropdown(),
         )
+
+
+
 
     # --- Launcher Control ---
 
@@ -240,6 +284,9 @@ class PidanLauncherApp:
                 print(f"Faile to login: {ex}")
             finally:
                 async def update_ui():
+                    if self.launcher.is_logged_in and self.prefs:
+                        await self.prefs.set("saved_account", json.dumps(self.launcher.login_data))
+
                     self.update_account_button_state()
                     self.update_launch_button()
                     if self.page:
@@ -250,9 +297,11 @@ class PidanLauncherApp:
 
         threading.Thread(target=do_login_thread, daemon=True).start()
 
-    def handle_signout(self, e: ft.Event[ft.Button]) -> None:
+    async def handle_signout(self, e: ft.Event[ft.Button]) -> None:
         """Handle clicking the signout button."""
         self.launcher.login_data = None
+        if self.prefs:
+            await self.prefs.remove("saved_account")
         self.update_account_button_state()
         self.update_launch_button()
         if self.page:

@@ -55,7 +55,8 @@ Need more future? see [MaterialLauncher](https://github.com/xxdmkbmark/MaterialL
   - Press login button and login with your Microsoft account
   - [x] Signout
     - Press signout button after you login.+
-  - [ ] Save account information for next time
+  - [x] Save account information for next time
+    - Login, shut down the launcher then start again
   - [ ] Multiple account 
 - [ ] Java Manage
 - [ ] Uninstall
