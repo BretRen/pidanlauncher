@@ -9,6 +9,8 @@ DO NOT USE IT! Unless your Terra Reviewer. This project suck; I just want to try
 ## How to use it?
 Great Question! It's just a launcher; I support all versions (release / vallina) in Minecraft. Just try it!
 
+For users on platforms other than Windows, issues may arise during execution, and no fixes will be provided.
+
 Go to GitHub Actions, click on the latest run, locate the "Artifacts" section, and download the version appropriate for your system (Windows, macOS (unstable), or Linux (unstable)).
 
 **You must log in to GitHub to download it!**
@@ -31,8 +33,8 @@ Try asking AI first; if you're sure it isn't your problem, then you can ask for 
 Sorry for that. This might be due to some bugs—believe me, it wasn't intentional. It shouldn't happen most of the time, but if it does, please uninstall the app immediately (see instructions below) and get in touch with me!
 
 #### Uninstall
-Please use the uninstall function via the launcher!
-It will automatically delete all data (you can choose whether or not to include Java and Minecraft data in the deletion).
+Please use the uninstall function via the launcher! (Press Ctrl + Shift + Alt + U)
+It will automatically delete all data.
 
 Then you can toss the whole launcher into the trash!
 
@@ -60,7 +62,8 @@ Need more future? see [MaterialLauncher](https://github.com/xxdmkbmark/MaterialL
     - Login, shut down the launcher then start again
   - [ ] Multiple account 
 - [ ] Java Manage
-- [ ] Uninstall
+- [x] Uninstall
+  - Press Ctrl + Shift + Alt + U
 - [ ] Custom Java Arg
 - [ ] Backup (not in plan)
 - [ ] Manage minecraft folder

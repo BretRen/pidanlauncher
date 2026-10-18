@@ -3,7 +3,6 @@ import os
 import shutil
 import subprocess
 import sys
-import time
 from pathlib import Path
 import flet as ft
 
@@ -33,7 +32,6 @@ def delete_self_executable():
             creationflags=subprocess.CREATE_NO_WINDOW,
         )
     else:
-        # Linux / macOS 允许直接删除或延迟移除
         subprocess.Popen(["sh", "-c", f'sleep 2 && rm -rf "{exe_path}"'])
 
 async def perform_uninstall(page: ft.Page, prefs: ft.SharedPreferences | None = None):
@@ -53,78 +51,66 @@ async def perform_uninstall(page: ft.Page, prefs: ft.SharedPreferences | None = 
     await asyncio.sleep(0.3)
     await page.window.close()
 
-# WHY IT SO HARD!!!!!!!!!!!!!!!
+# WHY IT SO HARD!!!!!!!!!!!!!!! Thanks Gemini 4 and Grok save my life
 def setup_uninstaller(
     page: ft.Page,
     prefs: ft.SharedPreferences | None = None,
-    hold_seconds: float = 10.0,
-):
-    uninstall_bar = ft.ProgressBar(value=0, color=ft.Colors.RED_400, bgcolor=ft.Colors.RED_900)
-    uninstall_text = ft.Text("", color=ft.Colors.WHITE, weight=ft.FontWeight.BOLD, size=14)
+    countdown_seconds: int = 10,
+) -> None:
+    is_counting_down: bool = False
+    txt = ft.Text("", color=ft.Colors.RED_900, weight=ft.FontWeight.W_500, size=13)
 
-    banner_card = ft.Container(
+    def cancel_uninstall(_: object = None) -> None:
+        nonlocal is_counting_down
+        is_counting_down = False
+        banner.visible = False
+        page.update()
+
+    banner = ft.Container(
         content=ft.Column(
-            [uninstall_text, uninstall_bar],
+            controls=[
+                ft.Row(
+                    controls=[
+                        ft.Icon(ft.Icons.WARNING_AMBER_ROUNDED, color=ft.Colors.RED_400, size=20),
+                        ft.Container(content=txt, expand=True),
+                    ],
+                ),
+            ],
             tight=True,
             spacing=8,
         ),
-        bgcolor=ft.Colors.RED_700,
-        padding=15,
-        border_radius=10,
+        bgcolor=ft.Colors.RED_50,
+        border=ft.Border.all(1, ft.Colors.RED_200),
+        padding=ft.Padding.symmetric(horizontal=16, vertical=12),
+        border_radius=14,
         margin=20,
         visible=False,
     )
-    page.overlay.append(banner_card)
+    page.overlay.append(banner)
 
-    press_start_time: float = 0.0
-    last_event_time: float = 0.0
-
-    def _on_keyboard(e: ft.KeyboardEvent):
-        nonlocal press_start_time, last_event_time
-
-        if e.ctrl and e.shift and e.key.upper() == "U":
-            now = time.monotonic()
-            if press_start_time == 0.0 or (now - last_event_time > 0.8):
-                press_start_time = now
-            last_event_time = now
-
-    page.on_keyboard_event = _on_keyboard
-
-    async def _watchdog():
-        nonlocal press_start_time
-        while True:
-            now = time.monotonic()
-
-            if press_start_time == 0.0:
-                await asyncio.sleep(0.1)
-                continue
-
-            # 按键中断超过 0.8 秒 → 重置
-            if now - last_event_time > 0.8:
-                press_start_time = 0.0
-                banner_card.visible = False
-                page.update()
-                await asyncio.sleep(0.1)
-                continue
-
-            # 正在持续按住
-            elapsed = now - press_start_time
-            remaining = max(0.0, hold_seconds - elapsed)
-
-            banner_card.visible = True
-            uninstall_bar.value = min(1.0, elapsed / hold_seconds)
-            uninstall_text.value = (
-                f"Keep holding Ctrl+Shift+U to uninstall "
-                f"({remaining:.1f}s left)"
-            )
+    async def run_countdown() -> None:
+        nonlocal is_counting_down
+        steps = countdown_seconds * 10
+        for i in range(steps + 1):
+            if not is_counting_down:
+                return
+            remaining = countdown_seconds - (i / 10)
+            txt.value = f"Continue waiting for {remaining:.0f} seconds, then delete and uninstall all data\n(Press esc to cancel)"
             page.update()
-
-            if elapsed >= hold_seconds:
-                uninstall_text.value = "Deleting..."
-                page.update()
-                await perform_uninstall(page, prefs)
-                break
-
             await asyncio.sleep(0.1)
 
-    page.run_task(_watchdog)
+        if is_counting_down:
+            txt.value = "Deleting & Uninstalling...."
+            page.update()
+            await perform_uninstall(page, prefs)
+
+    def on_key(e: ft.KeyboardEvent) -> None:
+        nonlocal is_counting_down
+        if is_counting_down and e.key == "Escape":
+            cancel_uninstall()
+        elif not is_counting_down and e.ctrl and e.shift and e.alt and e.key.upper() == "U":
+            is_counting_down = True
+            banner.visible = True
+            page.run_task(run_countdown)
+
+    page.on_keyboard_event = on_key

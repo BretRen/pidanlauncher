@@ -3,6 +3,7 @@ import json
 import flet as ft
 from minecraft_launcher_lib.types import MinecraftVersionInfo
 from pidanlauncher.launcher import MinecraftLauncher
+from pidanlauncher.uninstall import setup_uninstaller
 
 TERMS_TEXT = """
 Terms of Use
@@ -208,6 +209,8 @@ class PidanLauncherApp:
         """Render the main launcher view."""
         if self.page is None:
             return
+
+        setup_uninstaller(self.page, self.prefs)
 
         self.launcher_button = ft.Button(on_click=self.handle_launch)
         self.update_launch_button()
