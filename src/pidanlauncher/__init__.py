@@ -33,6 +33,7 @@ class PidanLauncherApp:
         self.launcher_button: ft.Button | None = None
         self.account_button: ft.Button | None = None
         self.version: str | None = None
+        self.account_text: ft.Text | None = None        
 
     async def setup_window(self) -> None:
         """Configure initial window properties and display settings."""
@@ -67,9 +68,19 @@ class PidanLauncherApp:
         await self.setup_window()
 
         self.prefs = ft.SharedPreferences()
-        has_accepted_terms = await self.prefs.get("has_accepted_terms") or False
 
-        saved_account_str = await self.prefs.get("saved_account")
+        await self.setup_window()
+        self.page.update()
+
+        has_accepted_terms = False
+        saved_account_str = None
+        try:
+            has_accepted_terms = await self.prefs.get("has_accepted_terms") or False
+            saved_account_str = await self.prefs.get("saved_account")
+        except Exception as e:
+            print(f"Preferences load skipped on hot reload: {e}")
+
+        
         if isinstance(saved_account_str, str) and self.prefs and self.page:
             prefs = self.prefs
             page = self.page
@@ -90,6 +101,7 @@ class PidanLauncherApp:
                         async def refresh_ui():
                             self.update_account_button_state()
                             self.update_launch_button()
+                            self.update_account_text()
                             page.update()
 
                             
@@ -176,12 +188,21 @@ class PidanLauncherApp:
         return dropdown
 
     def build_account_text(self):
-        text = ft.Text("You are logged in as ")
-        if self.launcher.login_data is not None:
-            text.value += self.launcher.login_data["name"]
-            return text
+        self.account_text = ft.Text(size=14, color=ft.Colors.GREY_400) # type: ignore
+        self.update_account_text()
+        return self.account_text
+
+    def update_account_text(self) -> None:
+        if self.account_text is None:
+            return
+
+        if self.launcher.is_logged_in and self.launcher.login_data:
+            name = self.launcher.login_data.get("name", "Unknown")
+            self.account_text.value = f"You are logged in as {name}"
+            self.account_text.visible = True
         else:
-            return None
+            self.account_text.value = ""
+            self.account_text.visible = False
 
     def show_main(self) -> None:
         """Render the main launcher view."""
@@ -191,15 +212,12 @@ class PidanLauncherApp:
         self.launcher_button = ft.Button(on_click=self.handle_launch)
         self.update_launch_button()
 
-        account_text = self.build_account_text()
-
-
         self.page.clean()
-        self.page.add(ft.Text("Welcome to Pidan Launcher", size=24))
-        if account_text is not None:
-            self.page.add(account_text)
         self.page.add(
+            ft.Text("Welcome to Pidan Launcher", size=24),
+            self.build_account_text(),
             self.launcher_button,
+            
             self.build_account_manage_view(),
             self.build_version_dropdown(),
         )
@@ -289,6 +307,7 @@ class PidanLauncherApp:
 
                     self.update_account_button_state()
                     self.update_launch_button()
+                    self.update_account_text() 
                     if self.page:
                         self.page.update()
 
@@ -304,6 +323,7 @@ class PidanLauncherApp:
             await self.prefs.remove("saved_account")
         self.update_account_button_state()
         self.update_launch_button()
+        self.update_account_text() 
         if self.page:
             self.page.update()
 
