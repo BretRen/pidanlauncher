@@ -9,16 +9,14 @@ import flet as ft
 def get_data_dirs() -> list[Path]:
     home = Path.home()
     if sys.platform == "win32":
-        base = Path(os.getenv("APPDATA", home / "AppData"/ "Roaming"))
-        # In dev, flet is the dir name
-        return [base / "Pdnode" / "PidanLauncher", base / "Appveyor Systems Inc" / "flet",]
-    elif sys.platform == "darwin":  # macOS
+        base = Path(os.getenv("APPDATA", home / "AppData" / "Roaming"))
+        return [base / "Pdnode" / "PidanLauncher"]
+    elif sys.platform == "darwin":
         base = home / "Library" / "Application Support"
-        return [base / "com.pdnode.pidanlauncher", base / "flet"]
-    else:  # Linux
+        return [base / "com.pdnode.pidanlauncher"]
+    else:
         base = Path(os.getenv("XDG_DATA_HOME", home / ".local" / "share"))
-        return [base / "pidanlauncher", base / "flet"]
-
+        return [base / "pidanlauncher"]
 
 def delete_self_executable():
     if not getattr(sys, "frozen", False):
